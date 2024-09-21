@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.UI;
 public class PlayerController : MonoBehaviour
 {
-   [SerializeField] private int moveSpeed;
+   [SerializeField] private int moveSpeed;//скорость персонажа
    [SerializeField] private Rigidbody2D rb;
    [SerializeField] private Camera cam;
    [SerializeField] private Animator anim;
@@ -14,9 +14,14 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private bool cursorchik;
 
+    [SerializeField] private int totalCoins;//общее кол-во монет
+    [SerializeField] private Text coinValueText;
+
     private void Start()
     {
-        
+        totalCoins = PlayerPrefs.GetInt("Coins", 0);
+        Debug.Log("Монеты игрока" + totalCoins);
+        UpdateCoinText();//обновляем ui с кол-вом монет
     }
 
     private void Update()
@@ -27,6 +32,7 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         Movement();
+        UpdateCoinText();
     }
 
     void MousPosition()
@@ -48,10 +54,26 @@ public class PlayerController : MonoBehaviour
 
     void CursorController()
     {
-        if (cursorchik)
-            Cursor.visible = true;
-        if (!cursorchik)
-            Cursor.visible = false;
+        Cursor.visible = cursorchik;
+    }
+
+    public void AddCoin(int amount)
+    {
+        totalCoins += amount;//увеличиваем кол-во монеток
+        PlayerPrefs.SetInt("Coins", totalCoins);//сохраняем в PlayerPrefs
+        Debug.Log("Собрано монеток" + totalCoins);
+        
+    }
+    public void ResetCoins()
+    {
+        totalCoins = 0; // Сбрасываем количество монет
+        PlayerPrefs.SetInt("Coins", totalCoins); // Обновляем в PlayerPrefs
+        UpdateCoinText(); // Обновляем UI текст
+    }
+
+    private void UpdateCoinText()
+    {
+        coinValueText.text = totalCoins.ToString();
     }
 
 }
