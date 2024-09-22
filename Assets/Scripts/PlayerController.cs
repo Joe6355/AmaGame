@@ -14,7 +14,7 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private bool cursorchik;
 
-    [SerializeField] private int totalCoins;//общее кол-во монет
+    [SerializeField] public int totalCoins;//общее кол-во монет
     [SerializeField] private Text coinValueText;
 
     private void Start()
