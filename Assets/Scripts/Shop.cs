@@ -100,7 +100,7 @@ public class Shop : MonoBehaviour
         }
     }
 
-
+}
     //отрисовка радуса покупки
     /*private void OnDrawGizmosSelected()
     {
@@ -116,4 +116,3 @@ public class Shop : MonoBehaviour
             Gizmos.DrawWireSphere(transform.position, circleCollider.radius);
         }
     }*/
-}

@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - Money
+  - ArrowFire
+  - ArrowDef
   layers:
   - Default
   - TransparentFX
