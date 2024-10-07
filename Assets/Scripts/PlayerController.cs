@@ -20,6 +20,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Text coinValueText;
 
     public CrossbowController crossbowController;
+
+    public int Hp = 5;
+   
     private void Start()
     {
         totalCoins = PlayerPrefs.GetInt("Coins", 0);
