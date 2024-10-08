@@ -7,7 +7,8 @@ public class Enemy : MonoBehaviour
 
     public Transform player;
     public float distantion;
-    public float speed = 2f;
+    private float speed;
+    public float defSpeed = 5;
 
     private PlayerController playerController;
 
@@ -30,10 +31,6 @@ public class Enemy : MonoBehaviour
     {
         Distantion();
 
-        if (health <= 0)
-        {
-            Die();
-        }
     }
 
     // Функция для определения дистанции между игроком и врагом и его перемещения
@@ -45,6 +42,7 @@ public class Enemy : MonoBehaviour
         if (distantion < 5)
         {
             transform.position = Vector2.MoveTowards(transform.position, player.position, speed * Time.deltaTime);
+            speed = defSpeed;
         }
         else
         {
@@ -68,6 +66,15 @@ public class Enemy : MonoBehaviour
             playerController.Hp -= damageTouch;
             Debug.Log("Игрок получил урон: " + damageTouch);
             Die(); // Вызов смерти врага
+        }
+    }
+
+    public void TakeDamage(int damage)
+    {
+        health -= damage;
+        if (health <= 0)
+        {
+            Die();
         }
     }
 

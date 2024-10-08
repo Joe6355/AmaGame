@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5955616108200526965}
   m_Layer: 0
   m_Name: Enemy
-  m_TagString: Untagged
+  m_TagString: Slime
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -147,7 +147,7 @@ MonoBehaviour:
   damageTouch: 3
   player: {fileID: 0}
   distantion: 0
-  speed: 2
+  defSpeed: 3
   lootPrefabs:
   - {fileID: 7664941360269349480, guid: 3495308d5ffa83147afeafe6aa53a5ad, type: 3}
   - {fileID: 7664941360269349480, guid: 3495308d5ffa83147afeafe6aa53a5ad, type: 3}

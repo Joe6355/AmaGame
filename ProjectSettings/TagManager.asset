@@ -7,6 +7,7 @@ TagManager:
   - Money
   - ArrowFire
   - ArrowDef
+  - Slime
   layers:
   - Default
   - TransparentFX
