@@ -1,3 +1,5 @@
+using System.Drawing;
+
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
@@ -12,6 +14,11 @@ public class Enemy : MonoBehaviour
 
     private PlayerController playerController;
 
+
+    
+    public SpriteRenderer sprite;
+
+
     // Лут (префабы), которые могут выпасть
     [SerializeField] private GameObject[] lootPrefabs; // Массив префабов лута
     [SerializeField] private float dropChanceMin = 0.25f; // Минимальный шанс выпадения лута (25%)
@@ -20,17 +27,22 @@ public class Enemy : MonoBehaviour
 
     private void Start()
     {
+        sprite = GetComponent<SpriteRenderer>();
+
         playerController = FindObjectOfType<PlayerController>();
         if (playerController == null)
         {
             Debug.LogError("PlayerController не найден!");
         }
+
+        
     }
 
     private void Update()
     {
+       
         Distantion();
-
+        
     }
 
     // Функция для определения дистанции между игроком и врагом и его перемещения
@@ -69,15 +81,24 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    private void SetTransparence(float alpha)
+    {
+        sprite.color = new UnityEngine.Color(1f, 0f, 0f, alpha); // Устанавливаем цвет с заданной прозрачностью
+    }
     public void TakeDamage(int damage)
     {
         health -= damage;
+        SetTransparence(0.5f);
         if (health <= 0)
         {
             Die();
         }
+        Invoke("ResetTransparency", 0.1f); // Используем Invoke для сброса прозрачности через 0.2 секунды
     }
-
+    private void ResetTransparency()
+    {
+        SetTransparence(1f); // Возвращаем цвет к непрозрачному
+    }
     // Функция для выпадения лута
     private void DropLoot()
     {

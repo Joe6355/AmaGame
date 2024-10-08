@@ -148,6 +148,7 @@ MonoBehaviour:
   player: {fileID: 0}
   distantion: 0
   defSpeed: 3
+  sprite: {fileID: 219495857586277289}
   lootPrefabs:
   - {fileID: 7664941360269349480, guid: 3495308d5ffa83147afeafe6aa53a5ad, type: 3}
   - {fileID: 7664941360269349480, guid: 3495308d5ffa83147afeafe6aa53a5ad, type: 3}
