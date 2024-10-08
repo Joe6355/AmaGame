@@ -8,7 +8,9 @@ public class Enemy : MonoBehaviour
     public int damageTouch = 3;  // Урон, наносимый при столкновении
 
     public Transform player;
-    public float distantion;
+    private float distantion;
+    public float agrDistantion = 10;
+
     private float speed;
     public float defSpeed = 5;
 
@@ -45,13 +47,27 @@ public class Enemy : MonoBehaviour
         
     }
 
+    private void FixedUpdate()
+    {
+        // Ищем игрока по тегу
+         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+        if (playerObject != null)
+        {
+            player = playerObject.transform; // Назначаем transform игрока
+        }
+        else
+        {
+            Debug.LogError("Игрок не найден! Убедитесь, что у него установлен тег 'Player'.");
+        }
+    }
+
     // Функция для определения дистанции между игроком и врагом и его перемещения
     public void Distantion()
     {
         distantion = Vector2.Distance(player.position, transform.position);
         Debug.Log("Дистанция между игроком и врагом: " + distantion);
 
-        if (distantion < 5)
+        if (distantion < agrDistantion)
         {
             transform.position = Vector2.MoveTowards(transform.position, player.position, speed * Time.deltaTime);
             speed = defSpeed;
@@ -85,6 +101,11 @@ public class Enemy : MonoBehaviour
     {
         sprite.color = new UnityEngine.Color(1f, 0f, 0f, alpha); // Устанавливаем цвет с заданной прозрачностью
     }
+    private void ResetTransparency()
+    {
+        SetTransparence(1f); // Возвращаем цвет к непрозрачному
+    }
+
     public void TakeDamage(int damage)
     {
         health -= damage;
@@ -95,10 +116,7 @@ public class Enemy : MonoBehaviour
         }
         Invoke("ResetTransparency", 0.1f); // Используем Invoke для сброса прозрачности через 0.2 секунды
     }
-    private void ResetTransparency()
-    {
-        SetTransparence(1f); // Возвращаем цвет к непрозрачному
-    }
+    
     // Функция для выпадения лута
     private void DropLoot()
     {
