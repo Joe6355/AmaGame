@@ -6,12 +6,29 @@ public class Coin: MonoBehaviour
 {
     [SerializeField] private int coinValue = 1; //сколько дает монетка при сборе
     //[SerializeField] private int lifeTime = 5;//время жизни монетки
-
+    private Rigidbody2D rb;
+    public int rotSpeed = 1;   
     private void Start()
     {
         //Destroy(gameObject, lifeTime);    
+        rb = GetComponent<Rigidbody2D>();
+        Vector2 randomDirection = Random.insideUnitCircle.normalized;
+        rb.AddForce(randomDirection * 2, ForceMode2D.Impulse);
+
     }
 
+
+    void Stop()
+    {
+        rb.velocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+    }
+    private void FixedUpdate()
+    {
+        transform.Rotate(new Vector3(0, rotSpeed, 0));
+        Invoke("Stop", 0.5f);
+
+    }
     private void OnTriggerEnter2D(Collider2D coll)
     {
         if (coll.CompareTag("Player"))

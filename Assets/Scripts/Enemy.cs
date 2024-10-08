@@ -1,52 +1,22 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    public int health = 5;
-    public int damageTouch = 3;
+    public int health = 5;  // Здоровье врага
+    public int damageTouch = 3;  // Урон, наносимый при столкновении
 
     public Transform player;
-    public Transform enemy;
     public float distantion;
-
-    public float speed;
+    public float speed = 2f;
 
     private PlayerController playerController;
 
+    // Лут (префабы), которые могут выпасть
+    [SerializeField] private GameObject[] lootPrefabs; // Массив префабов лута
+    [SerializeField] private float dropChanceMin = 0.25f; // Минимальный шанс выпадения лута (25%)
+    [SerializeField] private float dropChanceMax = 0.50f; // Максимальный шанс выпадения лута (50%)
+    [SerializeField] private int lootDropCount = 3; // Количество выпадающих лутов
 
-    public void Distantion()
-    {
-        distantion =  Vector2.Distance(player.position, enemy.position);
-        Debug.Log("Дистанция между игроком и врагом" + distantion);
-        if(distantion < 5) 
-        {
-            speed = 2;
-            transform.position = Vector2.MoveTowards(transform.position, player.position, speed * Time.deltaTime);
-        }
-        else 
-        {
-            Debug.Log("Cтоп игрок далеко");
-            speed = 0;
-            //Destroy(gameObject, 5f);
-        }
-    }
-
-   
-    private void OnCollisionEnter2D(Collision2D coll)
-    {
-        if (coll.gameObject.tag == "Player")
-        {
-            playerController.Hp -= damageTouch;
-            Destroy(gameObject);
-        }
-    }
-    public void Update()
-    {
-        Distantion();
-
-    }
     private void Start()
     {
         playerController = FindObjectOfType<PlayerController>();
@@ -56,4 +26,72 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        Distantion();
+
+        if (health <= 0)
+        {
+            Die();
+        }
+    }
+
+    // Функция для определения дистанции между игроком и врагом и его перемещения
+    public void Distantion()
+    {
+        distantion = Vector2.Distance(player.position, transform.position);
+        Debug.Log("Дистанция между игроком и врагом: " + distantion);
+
+        if (distantion < 5)
+        {
+            transform.position = Vector2.MoveTowards(transform.position, player.position, speed * Time.deltaTime);
+        }
+        else
+        {
+            speed = 0;
+            Debug.Log("Игрок далеко, враг остановился");
+        }
+    }
+
+    // Когда враг умирает, проверяется вероятность выпадения лута
+    private void Die()
+    {
+        DropLoot();  // Выпадает лут при смерти
+        Destroy(gameObject);  // Уничтожаем врага
+    }
+
+    // Функция для столкновений с игроком
+    private void OnCollisionEnter2D(Collision2D coll)
+    {
+        if (coll.gameObject.CompareTag("Player"))
+        {
+            playerController.Hp -= damageTouch;
+            Debug.Log("Игрок получил урон: " + damageTouch);
+            Die(); // Вызов смерти врага
+        }
+    }
+
+    // Функция для выпадения лута
+    private void DropLoot()
+    {
+        for (int i = 0; i < lootDropCount; i++)
+        {
+            float dropChance = Random.Range(dropChanceMin, dropChanceMax);
+
+            if (Random.value <= dropChance)
+            {
+                // Выбираем случайный лут из массива префабов
+                GameObject loot = lootPrefabs[Random.Range(0, lootPrefabs.Length)];
+
+                // Создаем лут на позиции врага
+                Instantiate(loot, transform.position, Quaternion.identity);
+
+                Debug.Log("Лут выпал: " + loot.name);
+            }
+            else
+            {
+                Debug.Log("Лут не выпал.");
+            }
+        }
+    }
 }
