@@ -8,6 +8,7 @@ TagManager:
   - ArrowFire
   - ArrowDef
   - Slime
+  - HolyEnemy
   layers:
   - Default
   - TransparentFX

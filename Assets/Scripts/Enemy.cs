@@ -1,10 +1,11 @@
-using System.Drawing;
-
+using System.Linq;
 using UnityEngine;
+using System.Collections;
 
 public class Enemy : MonoBehaviour
 {
-    public int health = 5;  // Здоровье врага
+    public int health = 5;// Здоровье врага
+    
     public int damageTouch = 3;  // Урон, наносимый при столкновении
 
     public Transform player;
@@ -16,44 +17,38 @@ public class Enemy : MonoBehaviour
 
     private PlayerController playerController;
 
-
-    
     public SpriteRenderer sprite;
 
+   
 
-    // Лут (префабы), которые могут выпасть
-    [SerializeField] private GameObject[] lootPrefabs; // Массив префабов лута
-    [SerializeField] private float dropChanceMin = 0.25f; // Минимальный шанс выпадения лута (25%)
-    [SerializeField] private float dropChanceMax = 0.50f; // Максимальный шанс выпадения лута (50%)
-    [SerializeField] private int lootDropCount = 3; // Количество выпадающих лутов
+    [SerializeField] private GameObject[] lootPrefabs;
+    [SerializeField] private float dropChanceMin = 0.25f;
+    [SerializeField] private float dropChanceMax = 0.50f;
+    [SerializeField] private int lootDropCount = 3;
 
     private void Start()
     {
+       
         sprite = GetComponent<SpriteRenderer>();
-
         playerController = FindObjectOfType<PlayerController>();
+
         if (playerController == null)
         {
             Debug.LogError("PlayerController не найден!");
         }
-
-        
     }
 
     private void Update()
     {
-       
         Distantion();
-        
     }
 
     private void FixedUpdate()
     {
-        // Ищем игрока по тегу
-         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
         if (playerObject != null)
         {
-            player = playerObject.transform; // Назначаем transform игрока
+            player = playerObject.transform;
         }
         else
         {
@@ -61,12 +56,9 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    // Функция для определения дистанции между игроком и врагом и его перемещения
     public void Distantion()
     {
         distantion = Vector2.Distance(player.position, transform.position);
-        Invoke("InfoPlayer", 100f);
-
         if (distantion < agrDistantion)
         {
             transform.position = Vector2.MoveTowards(transform.position, player.position, speed * Time.deltaTime);
@@ -75,20 +67,19 @@ public class Enemy : MonoBehaviour
         else
         {
             speed = 0;
-            Invoke("InfoEnemy", 100f);
         }
     }
 
-    private void InfoEnemy()
+    private void SetTransparence(float alpha)
     {
-        Debug.Log("Игрок далеко, враг остановился");
-
+        sprite.color = new UnityEngine.Color(1f, 0f, 0f, alpha);
     }
-    private void InfoPlayer()
+
+    private void ResetTransparency()
     {
-        Debug.Log("Дистанция между игроком и врагом: " + distantion);
-
+        SetTransparence(1f);
     }
+
     // Метод для применения ядовитого урона
     public void ApplyPoison(int poisonDamagePerTick, int poisonTicks, float tickInterval)
     {
@@ -96,76 +87,99 @@ public class Enemy : MonoBehaviour
     }
 
     // Корутин для нанесения ядовитого урона
-    private System.Collections.IEnumerator ApplyPoisonDamage(int poisonDamagePerTick, int poisonTicks, float tickInterval)
+    private IEnumerator ApplyPoisonDamage(int poisonDamagePerTick, int poisonTicks, float tickInterval)
     {
         for (int i = 0; i < poisonTicks; i++)
         {
             if (health > 0) // Проверяем, жив ли враг
             {
-                TakeDamage(poisonDamagePerTick);
+                TakeDamage(poisonDamagePerTick, false); // Наносим ядовитый урон
                 Debug.Log($"Яд тик {i + 1}: Урон = {poisonDamagePerTick}");
-                yield return new WaitForSeconds(tickInterval);
+                yield return new WaitForSeconds(tickInterval); // Задержка между уронами
             }
             else
             {
                 break; // Прерываем цикл, если враг умер
             }
         }
+    
+}
+
+    // Метод для нанесения урона или лечения
+    public void TakeDamage(int amount, bool isHolyArrow)
+    {
+        // Получаем ссылку на стрелу
+        ArrowDef arrowDef = FindObjectOfType<ArrowDef>();
+
+        
+
+        // Если стрела святая
+        if (isHolyArrow)
+        {
+            // Если у врага тег из списка Holy, наносим урон
+            if (arrowDef.HolyEnemyTags.Contains(gameObject.tag))
+            {
+                health -= amount;
+                Debug.Log($"Враг получил урон от святой стрелы: {amount}. Текущее здоровье: {health}");
+            }
+            // Если враг не святой, восстанавливаем здоровье
+            else if (arrowDef.EnemyTags.Contains(gameObject.tag))
+            {
+                Heal(amount);
+                Debug.Log($"Враг был вылечен святой стрелой на {amount}. Текущее здоровье: {health}");
+            }
+        }
+        else
+        {
+            // Если стрела не святая, наносим обычный урон
+            health -= amount;
+            Debug.Log($"Враг получил обычный урон: {amount}. Текущее здоровье: {health}");
+        }
+
+        SetTransparence(0.5f);
+
+        if (health <= 0)
+        {
+            Die();
+        }
+
+        Invoke("ResetTransparency", 0.1f);
     }
 
-    // Когда враг умирает, проверяется вероятность выпадения лута
+    // Метод для лечения
+    public void Heal(int amount)
+    {
+        health += amount;
+        Debug.Log($"Враг был вылечен на {amount}. Текущие здоровье: {health}");
+
+    }
+
     private void Die()
     {
-        DropLoot();  // Выпадает лут при смерти
-        Destroy(gameObject);  // Уничтожаем врага
+        Debug.Log("Враг умер.");
+        DropLoot();
+        Destroy(gameObject);
     }
 
-    // Функция для столкновений с игроком
     private void OnCollisionEnter2D(Collision2D coll)
     {
         if (coll.gameObject.CompareTag("Player"))
         {
             playerController.Hp -= damageTouch;
             Debug.Log("Игрок получил урон: " + damageTouch);
-            Die(); // Вызов смерти врага
-        }
-    }
-
-    private void SetTransparence(float alpha)
-    {
-        sprite.color = new UnityEngine.Color(1f, 0f, 0f, alpha); // Устанавливаем цвет с заданной прозрачностью
-    }
-    private void ResetTransparency()
-    {
-        SetTransparence(1f); // Возвращаем цвет к непрозрачному
-    }
-
-    public void TakeDamage(int damage)
-    {
-        health -= damage;
-        SetTransparence(0.5f);
-        if (health <= 0)
-        {
             Die();
         }
-        Invoke("ResetTransparency", 0.1f); // Используем Invoke для сброса прозрачности через 0.2 секунды
     }
-    
-    // Функция для выпадения лута
+
     private void DropLoot()
     {
         for (int i = 0; i < lootDropCount; i++)
         {
             float dropChance = Random.Range(dropChanceMin, dropChanceMax);
-
             if (Random.value <= dropChance)
             {
-                // Выбираем случайный лут из массива префабов
                 GameObject loot = lootPrefabs[Random.Range(0, lootPrefabs.Length)];
-
-                // Создаем лут на позиции врага
                 Instantiate(loot, transform.position, Quaternion.identity);
-
                 Debug.Log("Лут выпал: " + loot.name);
             }
             else
