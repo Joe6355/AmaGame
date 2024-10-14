@@ -14,12 +14,12 @@ public class ArrowDef : MonoBehaviour
     {
         
     }
-    private void Update()
+    protected virtual void Update()
     {
         Destroy(gameObject, lifeTime);
     }
 
-    private void OnCollisionEnter2D(Collision2D coll)
+    protected virtual void OnCollisionEnter2D(Collision2D coll)
     {
         // Проверяем, является ли объект врагом по тегу
         if (enemyTeg.Contains(coll.gameObject.tag))

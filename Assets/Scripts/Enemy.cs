@@ -65,7 +65,7 @@ public class Enemy : MonoBehaviour
     public void Distantion()
     {
         distantion = Vector2.Distance(player.position, transform.position);
-        Debug.Log("Дистанция между игроком и врагом: " + distantion);
+        Invoke("InfoPlayer", 100f);
 
         if (distantion < agrDistantion)
         {
@@ -75,7 +75,41 @@ public class Enemy : MonoBehaviour
         else
         {
             speed = 0;
-            Debug.Log("Игрок далеко, враг остановился");
+            Invoke("InfoEnemy", 100f);
+        }
+    }
+
+    private void InfoEnemy()
+    {
+        Debug.Log("Игрок далеко, враг остановился");
+
+    }
+    private void InfoPlayer()
+    {
+        Debug.Log("Дистанция между игроком и врагом: " + distantion);
+
+    }
+    // Метод для применения ядовитого урона
+    public void ApplyPoison(int poisonDamagePerTick, int poisonTicks, float tickInterval)
+    {
+        StartCoroutine(ApplyPoisonDamage(poisonDamagePerTick, poisonTicks, tickInterval));
+    }
+
+    // Корутин для нанесения ядовитого урона
+    private System.Collections.IEnumerator ApplyPoisonDamage(int poisonDamagePerTick, int poisonTicks, float tickInterval)
+    {
+        for (int i = 0; i < poisonTicks; i++)
+        {
+            if (health > 0) // Проверяем, жив ли враг
+            {
+                TakeDamage(poisonDamagePerTick);
+                Debug.Log($"Яд тик {i + 1}: Урон = {poisonDamagePerTick}");
+                yield return new WaitForSeconds(tickInterval);
+            }
+            else
+            {
+                break; // Прерываем цикл, если враг умер
+            }
         }
     }
 
