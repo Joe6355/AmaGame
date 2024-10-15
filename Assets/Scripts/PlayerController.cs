@@ -2,39 +2,119 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+
 public class PlayerController : MonoBehaviour
 {
-   [SerializeField] private int moveSpeed;//скорость персонажа
-   [SerializeField] private Rigidbody2D rb;
-   [SerializeField] private Camera cam;
-   [SerializeField] private Animator anim;
+    [SerializeField] private int moveSpeed; // скорость персонажа
+    [SerializeField] private Rigidbody2D rb;
+    [SerializeField] private Camera cam;
+    [SerializeField] private Animator anim;
 
-    Vector2 movement;//веткор движени€
-    Vector2 mousePos;// позици€ мышки
-
-
+    Vector2 movement; // вектор движени€
+    Vector2 mousePos; // позици€ мышки
 
     [SerializeField] private bool cursorchik;
-
-    [SerializeField] public int totalCoins;//общее кол-во монет
+    [SerializeField] public int totalCoins; // общее кол-во монет
     [SerializeField] private Text coinValueText;
 
     public CrossbowController crossbowController;
 
     public int Hp = 5;
-   
+
+    // все дл€ возвращени€ на точку
+    [SerializeField] private Transform mirrorHome;
+    private KeyCode keyToHold = KeyCode.E; // кнопка, которую нужно удерживать
+    public float holdDuration = 3f; // врем€ удержани€ кнопки
+    private bool isHolding = false; // флаг состо€ни€
+    private float holdTimer = 0f; // таймер дл€ отслеживани€
+    [SerializeField] private int mirrorRemainder = 1; // кол-во зар€дов зеркала
+    private int originalMoveSpeed; // дл€ восстановлени€ скорости после телепортации
+    // ѕолоска прогресса телепортации
+    [SerializeField] private Image progressBarImage; // »зображение прогресс-бара
+    [SerializeField] private GameObject progressBarContainer; //  онтейнер прогресс-бара
+    
+
     private void Start()
     {
         totalCoins = PlayerPrefs.GetInt("Coins", 0);
         Debug.Log("ћонеты игрока" + totalCoins);
-        UpdateCoinText();//обновл€ем ui с кол-вом монет
+        UpdateCoinText(); // обновл€ем ui с кол-вом монет
 
         crossbowController = FindObjectOfType<CrossbowController>(); // Ќайдет объект с этим компонентом
         if (crossbowController == null)
         {
             Debug.LogError("CrossbowController не прив€зан!");
         }
+
+        originalMoveSpeed = moveSpeed; // сохран€ем исходную скорость
+
+        progressBarContainer.SetActive(false);
+        
     }
+
+    private void MirrorHome()
+    {
+        // ≈сли зар€д зеркала закончилс€, ничего не делаем
+        if (mirrorRemainder <= 0)
+        {
+            //Debug.Log("«ар€дов зеркала больше нет.");
+            return;
+        }
+
+        // ѕровер€ем удержание кнопки
+        if (Input.GetKey(keyToHold))
+        {
+            // Ќачинаем уменьшать скорость
+            moveSpeed = originalMoveSpeed / 2;
+
+            if (!isHolding)
+            {
+                isHolding = true;
+                holdTimer = 0f; // сбрасываем таймер
+                progressBarContainer.SetActive(true);
+            }
+
+            holdTimer += Time.deltaTime;
+
+            // ќбновл€ем заполнение полоски прогресса
+            float fillAmount = holdTimer / holdDuration;
+            progressBarImage.fillAmount = fillAmount;
+
+            // ≈сли врем€ удержани€ прошло Ч телепортируем
+            if (holdTimer >= holdDuration)
+            {
+                TeleportPlayerHome();
+                mirrorRemainder--; // уменьшаем зар€д только после успешной телепортации
+                Debug.Log($"«ар€д зеркала: {mirrorRemainder}");
+                ResetMirrorState(); // сбрасываем состо€ние удержани€
+            }
+        }
+        else
+        {
+            // ≈сли кнопку отпустили, возвращаем скорость и сбрасываем состо€ние
+            ResetMirrorState();
+        }
+    }
+
+    // ћетод дл€ сброса состо€ни€ удержани€ и восстановлени€ скорости
+    private void ResetMirrorState()
+    {
+        isHolding = false;
+        holdTimer = 0f;
+        moveSpeed = originalMoveSpeed; // возвращаем скорость
+
+        // —брасываем прогресс и пр€чем полоску
+        progressBarImage.fillAmount = 0f;
+        progressBarContainer.SetActive(false);
+    }
+
+   
+    private void TeleportPlayerHome() // вернуть игрока домой
+    {
+        transform.position = mirrorHome.position;
+        Debug.Log("¬ы дома");
+    }
+
     private void CrossBowController()
     {
         if (Input.GetMouseButtonDown(0))
@@ -53,8 +133,7 @@ public class PlayerController : MonoBehaviour
     {
         if (coll.CompareTag("ArrowDef"))
         {
-            crossbowController.AddArrows(0,3);
-            
+            crossbowController.AddArrows(0, 3);
         }
         if (coll.CompareTag("ArrowFire"))
         {
@@ -64,31 +143,34 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        MousPosition();
         CursorController();
         CrossBowController();
+        MirrorHome();
+       
     }
+
     private void FixedUpdate()
     {
         Movement();
         UpdateCoinText();
+        MousPosition();
     }
 
     void MousPosition()
     {
         movement.x = Input.GetAxisRaw("Horizontal");
         movement.y = Input.GetAxisRaw("Vertical");
-        
+
         mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
     }
 
-    void Movement() 
+    void Movement()
     {
         rb.MovePosition(rb.position + movement * moveSpeed * Time.fixedDeltaTime);
 
         Vector2 lookDir = mousePos - rb.position;
         float angle = Mathf.Atan2(lookDir.y, lookDir.x) * Mathf.Rad2Deg - 90f;
-        rb.rotation = angle;//поворачиваем игрока в сторону курсора
+        rb.rotation = angle; // поворачиваем игрока в сторону курсора
     }
 
     void CursorController()
@@ -98,21 +180,20 @@ public class PlayerController : MonoBehaviour
 
     public void AddCoin(int amount)
     {
-        totalCoins += amount;//увеличиваем кол-во монеток
-        PlayerPrefs.SetInt("Coins", totalCoins);//сохран€ем в PlayerPrefs
-        Debug.Log("—обрано монеток" + totalCoins);
-        
+        totalCoins += amount; // увеличиваем кол-во монеток
+        PlayerPrefs.SetInt("Coins", totalCoins); // сохран€ем в PlayerPrefs
+        Debug.Log("—обрано монеток: " + totalCoins);
     }
+
     public void ResetCoins()
     {
-        totalCoins = 0; // —брасываем количество монет
-        PlayerPrefs.SetInt("Coins", totalCoins); // ќбновл€ем в PlayerPrefs
-        UpdateCoinText(); // ќбновл€ем UI текст
+        totalCoins = 0; // сбрасываем количество монет
+        PlayerPrefs.SetInt("Coins", totalCoins); // обновл€ем в PlayerPrefs
+        UpdateCoinText(); // обновл€ем UI текст
     }
 
     private void UpdateCoinText()
     {
         coinValueText.text = totalCoins.ToString();
     }
-
 }
