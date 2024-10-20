@@ -165,7 +165,7 @@ public class Enemy : MonoBehaviour
     {
         if (coll.gameObject.CompareTag("Player"))
         {
-            playerController.Hp -= damageTouch;
+            playerController.hp -= damageTouch;
             Debug.Log("Игрок получил урон: " + damageTouch);
             Die();
         }

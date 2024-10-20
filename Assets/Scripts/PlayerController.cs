@@ -19,8 +19,6 @@ public class PlayerController : MonoBehaviour
 
     public CrossbowController crossbowController;
 
-    public int Hp = 5;
-
     // все для возвращения на точку
     [SerializeField] private Transform mirrorHome;
     private KeyCode keyToHold = KeyCode.E; // кнопка, которую нужно удерживать
@@ -28,14 +26,24 @@ public class PlayerController : MonoBehaviour
     private bool isHolding = false; // флаг состояния
     private float holdTimer = 0f; // таймер для отслеживания
     [SerializeField] private int mirrorRemainder = 1; // кол-во зарядов зеркала
+    [SerializeField] private Text mirrorCountText;
     private int originalMoveSpeed; // для восстановления скорости после телепортации
     // Полоска прогресса телепортации
     [SerializeField] private Image progressBarImage; // Изображение прогресс-бара
     [SerializeField] private GameObject progressBarContainer; // Контейнер прогресс-бара
-    
+
+    // общая логика хп
+    [SerializeField] private Image hpBar;
+    public float hp = 100;
+    public float maxHp = 100;
 
     private void Start()
     {
+        LoadPlayerData(); // Загружаем сохранённые данные для HP и зеркал
+
+        hpBar.fillAmount = hp / maxHp;
+        mirrorCountText.text = mirrorRemainder.ToString();
+
         totalCoins = PlayerPrefs.GetInt("Coins", 0);
         Debug.Log("Монеты игрока" + totalCoins);
         UpdateCoinText(); // обновляем ui с кол-вом монет
@@ -49,7 +57,11 @@ public class PlayerController : MonoBehaviour
         originalMoveSpeed = moveSpeed; // сохраняем исходную скорость
 
         progressBarContainer.SetActive(false);
-        
+    }
+
+    private void HpBar()
+    {
+        hpBar.fillAmount = hp / maxHp;
     }
 
     private void MirrorHome()
@@ -57,14 +69,12 @@ public class PlayerController : MonoBehaviour
         // Если заряд зеркала закончился, ничего не делаем
         if (mirrorRemainder <= 0)
         {
-            //Debug.Log("Зарядов зеркала больше нет.");
             return;
         }
 
         // Проверяем удержание кнопки
         if (Input.GetKey(keyToHold))
         {
-            // Начинаем уменьшать скорость
             moveSpeed = originalMoveSpeed / 2;
 
             if (!isHolding)
@@ -85,31 +95,28 @@ public class PlayerController : MonoBehaviour
             {
                 TeleportPlayerHome();
                 mirrorRemainder--; // уменьшаем заряд только после успешной телепортации
+                mirrorCountText.text = mirrorRemainder.ToString();
                 Debug.Log($"Заряд зеркала: {mirrorRemainder}");
                 ResetMirrorState(); // сбрасываем состояние удержания
             }
         }
         else
         {
-            // Если кнопку отпустили, возвращаем скорость и сбрасываем состояние
             ResetMirrorState();
         }
     }
 
-    // Метод для сброса состояния удержания и восстановления скорости
     private void ResetMirrorState()
     {
         isHolding = false;
         holdTimer = 0f;
         moveSpeed = originalMoveSpeed; // возвращаем скорость
 
-        // Сбрасываем прогресс и прячем полоску
         progressBarImage.fillAmount = 0f;
         progressBarContainer.SetActive(false);
     }
 
-   
-    private void TeleportPlayerHome() // вернуть игрока домой
+    private void TeleportPlayerHome()
     {
         transform.position = mirrorHome.position;
         Debug.Log("Вы дома");
@@ -122,7 +129,6 @@ public class PlayerController : MonoBehaviour
             crossbowController.Shoot();
         }
 
-        // Переключение стрел
         if (Input.GetKeyDown(KeyCode.Q))
         {
             crossbowController.SwitchArrowType();
@@ -146,7 +152,6 @@ public class PlayerController : MonoBehaviour
         CursorController();
         CrossBowController();
         MirrorHome();
-       
     }
 
     private void FixedUpdate()
@@ -154,6 +159,7 @@ public class PlayerController : MonoBehaviour
         Movement();
         UpdateCoinText();
         MousPosition();
+        HpBar();
     }
 
     void MousPosition()
@@ -170,7 +176,7 @@ public class PlayerController : MonoBehaviour
 
         Vector2 lookDir = mousePos - rb.position;
         float angle = Mathf.Atan2(lookDir.y, lookDir.x) * Mathf.Rad2Deg - 90f;
-        rb.rotation = angle; // поворачиваем игрока в сторону курсора
+        rb.rotation = angle;
     }
 
     void CursorController()
@@ -195,5 +201,35 @@ public class PlayerController : MonoBehaviour
     private void UpdateCoinText()
     {
         coinValueText.text = totalCoins.ToString();
+    }
+
+    // Сохранение HP и количества зеркал
+    public void SavePlayerData()
+    {
+        PlayerPrefs.SetFloat("PlayerHP", hp); // сохраняем здоровье
+        PlayerPrefs.SetInt("MirrorRemainder", mirrorRemainder); // сохраняем количество зеркал
+        PlayerPrefs.Save();
+        Debug.Log("Данные игрока сохранены.");
+    }
+
+    // Загрузка сохранённых данных
+    public void LoadPlayerData()
+    {
+        if (PlayerPrefs.HasKey("PlayerHP"))
+        {
+            hp = PlayerPrefs.GetFloat("PlayerHP");
+        }
+
+        if (PlayerPrefs.HasKey("MirrorRemainder"))
+        {
+            mirrorRemainder = PlayerPrefs.GetInt("MirrorRemainder");
+        }
+
+        Debug.Log("Данные игрока загружены.");
+    }
+
+    private void OnApplicationQuit()
+    {
+        SavePlayerData(); // Сохранение данных при завершении игры
     }
 }
