@@ -4212,7 +4212,7 @@ MonoBehaviour:
   progressBarImage: {fileID: 360666041}
   progressBarContainer: {fileID: 484949849}
   hpBar: {fileID: 1763990005}
-  hp: 24
+  hp: 10
   maxHp: 100
 --- !u!212 &1811454810
 SpriteRenderer:
@@ -4275,7 +4275,7 @@ Transform:
   m_GameObject: {fileID: 1811454805}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5.3, y: -3.4, z: 0}
+  m_LocalPosition: {x: -5.98, y: -2.45, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5351,11 +5351,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 275329749888683330, guid: e8563f4db6642474d88702e7ac8b51d0, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 6
+      value: -10.62
       objectReference: {fileID: 0}
     - target: {fileID: 275329749888683330, guid: e8563f4db6642474d88702e7ac8b51d0, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.45
+      value: 3.85
       objectReference: {fileID: 0}
     - target: {fileID: 275329749888683330, guid: e8563f4db6642474d88702e7ac8b51d0, type: 3}
       propertyPath: m_LocalPosition.z

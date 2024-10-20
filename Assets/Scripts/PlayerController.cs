@@ -63,6 +63,26 @@ public class PlayerController : MonoBehaviour
     {
         hpBar.fillAmount = hp / maxHp;
     }
+    private void DeadPlayer()
+    {
+        if(hp <= 0)
+        {
+            TeleportPlayerHome();
+            hp += 25;
+            totalCoins /= 2;
+            
+
+            // Убедимся, что количество монет не может быть меньше 0
+            if (totalCoins <= 0)
+            {
+                totalCoins = 0;
+            }
+
+            Debug.Log("Игрок умер. Монеты после штрафа: " + totalCoins);
+            PlayerPrefs.SetInt("Coins", totalCoins); // сохраняем в PlayerPrefs\
+            PlayerPrefs.SetFloat("PlayerHP", hp); // сохраняем здоровье
+        }
+    }
 
     private void MirrorHome()
     {
@@ -160,6 +180,7 @@ public class PlayerController : MonoBehaviour
         UpdateCoinText();
         MousPosition();
         HpBar();
+        DeadPlayer();   
     }
 
     void MousPosition()
@@ -233,3 +254,4 @@ public class PlayerController : MonoBehaviour
         SavePlayerData(); // Сохранение данных при завершении игры
     }
 }
+    
